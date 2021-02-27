@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>Scene</title>
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+        attribute vec4 vColor;
+        attribute vec4 vNormal;
+        
+        varying vec4 fColor;
+
+        uniform mat4 R;
+        uniform mat4 S;
+        uniform mat4 T;
+
+        uniform mat4 mView;
+        uniform mat4 mProj;
+        uniform mat3 mNormal;
+
+        uniform vec4 ambientProduct[10];
+        uniform vec4 diffuseProduct[10];
+        uniform vec4 specularProduct[10];
+        uniform float shininess;
+
+        uniform int nLights;
+        
+        uniform vec4 lightPosition[10];
+
+        void main(){
+            vec3 pos = (vPosition).xyz;
+
+            //int diff = i - (nLights - 1);
+            //float shininess = 0.0;
+            //int end = nLights;
+
+            vec4 to_light;
+            float d, attenuation;
+            
+            for(int i = 0; i < 3; i++){
+                to_light = lightPosition[i] - vPosition;
+                d = length( to_light );
+                //attenuation = clamp( 10.0 / d, 0.0, 1.0);
+                attenuation = 7.0 / (d * d);
+                
+                vec3 light = lightPosition[i].xyz;
+                vec3 L;
+                
+                // check for directional light
+                
+                if(lightPosition[i].w == 0.0) L = normalize(lightPosition[i].xyz);
+                else L = normalize( lightPosition[i].xyz - pos );
+                
+                vec3 E = -normalize( pos );
+                vec3 H = normalize( L + E );
+
+                // Transform vertex normal into eye coordinates
+                vec3 N = normalize(vNormal.xyz);
+                
+                // Compute terms in the illumination equation
+                vec4 ambient = ambientProduct[i];
+                
+                float Kd = max( dot(L, N), 0.0 );
+                vec4  diffuse = Kd*diffuseProduct[i];
+                
+                float Ks = pow( max(dot(N, H), 0.0), shininess );
+                vec4  specular = Ks * specularProduct[i];
+                
+                if( dot(L, N) < 0.0 ) {
+                    specular = vec4(0.0, 0.0, 0.0, 1.0);
+                } 
+                
+                fColor += attenuation * (ambient + diffuse + specular);
+            }
+
+            //fColor += vColor;
+            
+            fColor.a = 1.0;
+            gl_Position =  mProj * mView * T * S * R * vPosition;
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision highp float;
+
+        varying vec4 fColor;
+
+        void main(){
+            gl_FragColor = fColor;
+        }
+    </script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script src="globalVariables.js"></script>
+    <script src="Light.js"></script>
+    <script src="GfObject.js"></script>
+    <script src="Sphere.js"></script>
+    <script src="Cone.js"></script>
+    <script src="Pyramid.js"></script>
+    <script src="Room.js"></script>
+    <script src="LoadedObject.js"></script>
+    <script src="Scene.js"></script>
+    <script>
+        window.onload = function init(){
+            Scene.setGrlobalVariables();
+            Scene.render();
+        }
+    </script>
+
+    <style>
+        legend {
+            background-color: #000;
+            color: #fff;
+            padding: 3px 6px;
+        }
+
+        .output {
+            font: 1rem 'Fira Sans', sans-serif;
+        }
+
+        input {
+            margin: .4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="height: 640px; width: 200px; border-style: groove; position: fixed; left: 8px; top: 8px;">
+        translate 
+        <br/>
+        left-right<input id="TLR" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        up-down<input id="TUD" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        front-bk<input id="TFB" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/><br/>
+        scale 
+        <br/>
+        X<input id="SX" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        Y<input id="SY" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        Z<input id="SZ" type="range" min="-1" max="1" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/><br/>
+        rotate 
+        <br/>
+        X<input id="RX" type="range" min="-360" max="360" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        Y<input id="RY" type="range" min="-360" max="360" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/>
+        Z<input id="RZ" type="range" min="-360" max="360" step="0.01" oninput="Scene.inputRangeOnInput();">
+        <br/><br/>
+    </div>
+
+    <canvas width="640" height="640" id="canvas_id" style="border-style: groove; position:fixed; left: 220px; top: 8px;">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+
+    <div style="height: 640px; width: 140px; border-style: groove; position: fixed; left: 870px; top: 8px;">
+        <select name="objects" id="objMenu">
+                <option value="sphere">Sphere</option>  
+                <option value="cone">Cone</option>
+                <option value="pyramid">Pyramid</option>
+                <option value="room">Room</option>
+                <option value="light">Light</option>
+        </select>
+        <button style="position: fixed;" id="addBtn" type="button" onclick="Scene.addObj()">Add</button>
+        <br/><br/>
+        <fieldset>
+            <div>
+                <input onchange="Scene.changeColor();" type="color" id="colorInput" name="color" value="#e66465" />
+                <label for="head">Obj</label>
+            </div>
+        </fieldset> 
+        <br/><br/>
+        <fieldset>
+            <div>
+                <input onchange="Scene.changeLightColor();" type="color" id="lightColorInput" name="lightColor" value="#e66465" />
+                <label for="head">Light</label>
+            </div>
+        </fieldset> 
+        <br/><br/>
+        <select onchange="Scene.addedObjectsMenuOnChange();" name="addObjects" id="addedObjectsMenu"  
+            multiple="multiple" style="height: 200px; ">
+        </select>
+        <select onchange="Scene.addedLightsMenuOnChange();" name="addLights" id="addedLightsMenu"  
+            multiple="multiple" style="height: 200px; "></select>
+        <br/>
+        <button id="addBtn" type="button" onclick="Scene.deleteObj()">Del obj</button>
+        <button id="delLightBtn" type="button" onclick="Scene.deleteLight()">Del light</button>
+    </div>
+
+    <div style="height: 640px; width: 160px; border-style: groove; position: fixed; left: 1020px; top: 8px;">
+        setEye<br/>
+        X<input id="SEyeX" type="range" min="-2" max="2" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        Y<input id="SEyeY" type="range" min="-2" max="2" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        Z<input id="SEyeZ" type="range" min="-2" max="2" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        setCenter<br/>
+        X<input id="SCenX" type="range" min="-1" max="1" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        Y<input id="SCenY" type="range" min="-1" max="1" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        Z<input id="SCenZ" type="range" min="-1" max="1" step="0.0001" oninput="Scene.setEyeCenterUp();">
+        <br/><br/>
+        LightPosion
+        <br/>
+        X<input id="SLightX" type="range" min="-10" max="10" step="0.0001" oninput="Scene.lightInputRangeOnChange();">
+        Y<input id="SLightY" type="range" min="-10" max="10" step="0.0001" oninput="Scene.lightInputRangeOnChange();">
+        Z<input id="SLightZ" type="range" min="-10" max="10" step="0.0001" oninput="Scene.lightInputRangeOnChange();">
+        <br/><br/>
+        Shininess 
+        <br/>
+        <input id="shininess" type="range" min="0.0001" max="30" step="0.0001" oninput="Scene.changeShininessOnInput();">
+        <select name="projections" id="projMenu" onchange="Scene.setProjectionType();">
+            <option value="perspective">Perspective</option>  
+            <option value="orthogonal">Orthogonal</option>
+        </select>
+    </div>
+    <input type="file" onchange="Scene.openFile(event)" style="position: fixed; left: 1183px; top: 8px;">
+</body>
+</html>

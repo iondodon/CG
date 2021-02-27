@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>Rotating Square</title>
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+
+        attribute vec4 vColor;
+        varying vec4 fColor;
+        
+        uniform mat4 R;
+        uniform mat4 T;
+        uniform mat4 S;
+
+        void main(){
+            gl_Position = T * S * R * vPosition;
+            fColor = vColor;
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision highp float;
+        varying vec4 fColor;
+
+        void main(){
+            gl_FragColor = fColor;
+        }
+    </script>
+    <script src="rotatingSquare.js"></script>
+</head>
+
+<body>
+    <canvas width="512" height="512" id="gl-canvas">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+    <input id="inputRange" type="range" min="-10" max="10" step="0.01">
+    <select id="menu">
+        <option value="square"></option>
+        <option value="circle"></option>
+        <option value="triangle"></option>
+    </select>
+</body>
+</html>

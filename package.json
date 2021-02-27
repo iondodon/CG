@@ -1,0 +1,23 @@
+{
+  "name": "computergraphics",
+  "version": "1.0.0",
+  "description": "Laboratory works for Computer Graphics",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iondodon1998/UTM_CG.git"
+  },
+  "author": "Ion Dodon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iondodon1998/UTM_CG/issues"
+  },
+  "homepage": "https://github.com/iondodon1998/UTM_CG#readme",
+  "dependencies": {
+    "electron": "^2.0.9"
+  },
+  "devDependencies": {}
+}

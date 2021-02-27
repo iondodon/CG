@@ -1,0 +1,4 @@
+shadows and textures,
+checkbox -enable perpective-projection,
+rangeinput for projection - ca micsorarea sa fie mai mare -
+lab3

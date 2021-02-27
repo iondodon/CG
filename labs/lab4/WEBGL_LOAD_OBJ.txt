@@ -1,0 +1,24 @@
+// USEFUL FUNCTIONS 
+// substring(), split(), parseFloat(), 
+// console.log() !!!!!!!!!!!!!!!!!!!!!!! PLEASE USE IT
+
+<input type='file' onchange='openFile(event)'>
+<script>
+
+  var openFile = function(event) {
+    var input = event.target;
+
+    var reader = new FileReader();
+    reader.onload = function(){
+      var text = reader.result;
+      // get all the lines as an array!
+      var lines = text.split("\n");
+
+      // you can access any element or iterate thru array 
+      console.log(lines[0]);
+      console.log(lines[1]);
+      console.log(lines[9]);
+    };
+    reader.readAsText(input.files[0]);
+  };
+</script>

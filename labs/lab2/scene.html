@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>Scene</title>
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 vPosition;
+
+        attribute vec4 vColor;
+        varying vec4 fColor;
+
+        uniform mat4 R;
+        uniform mat4 S;
+        uniform mat4 T;
+
+        uniform int blackOn;
+
+        void main(){
+            gl_Position = T * S * R * vPosition;
+            if(blackOn == 0){
+                fColor = vColor;
+            } else {
+                fColor = vec4(0, 0, 0, 1);
+            }
+        }
+    </script>
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision highp float;
+
+        varying vec4 fColor;
+
+        void main(){
+            gl_FragColor = fColor;
+        }
+    </script>
+    <script src="globalVariables.js"></script>
+    <script src="GfObject.js"></script>
+    <script src="sphereObj.js"></script>
+    <script src="coneObj.js"></script>
+    <script src="pyramidObj.js"></script>
+    <script src="scene.js"></script>
+
+    <style>
+        legend {
+            background-color: #000;
+            color: #fff;
+            padding: 3px 6px;
+        }
+
+        .output {
+            font: 1rem 'Fira Sans', sans-serif;
+        }
+
+        input {
+            margin: .4rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="height: 640px; width: 200px; border-style: groove; position: fixed; left: 8px; top: 8px;">
+        translate 
+        <br/>
+        left-right<input id="TLR" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        up-down<input id="TUD" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        front-back<input id="TFB" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/><br/>
+        scale 
+        <br/>
+        X<input id="SX" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        Y<input id="SY" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        Z<input id="SZ" type="range" min="-1" max="1" step="0.01" oninput="inputRangeOnInput();">
+        <br/><br/>
+        rotate 
+        <br/>
+        X<input id="RX" type="range" min="-360" max="360" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        Y<input id="RY" type="range" min="-360" max="360" step="0.01" oninput="inputRangeOnInput();">
+        <br/>
+        Z<input id="RZ" type="range" min="-360" max="360" step="0.01" oninput="inputRangeOnInput();">
+        <br/><br/>
+    </div>
+
+    <canvas width="640" height="640" id="canvas_id" style="border-style: groove; position:fixed; left: 220px; top: 8px;">
+        Oops ... your browser doesn't support the HTML5 canvas element
+    </canvas>
+
+    <div style="height: 640px; width: 200px; border-style: groove; position: fixed; left: 870px; top: 8px;">
+        <select name="objects" id="objMenu">
+                <option value="sphere">Sphere</option>  
+                <option value="cone">Cone</option>
+                <option value="pyramid">Pyramid</option>
+        </select>
+        <button style="position: fixed;" id="addBtn" type="button" onclick="addObj()">Add</button>
+        <br/><br/>
+        <fieldset>
+            <div>
+                <input onchange="changeColor();" type="color" id="colorInput" name="color" value="#e66465" />
+                <label for="head">Color</label>
+            </div>
+        </fieldset> 
+        <br/><br/>
+        <select onchange="addedObjectsMenuOnChange();" name="addObjects" id="addedObjectsMenu" 
+            multiple="multiple" style="height: 200px; "></select>
+        <br/>
+        <button style="position: fixed;" id="addBtn" type="button" onclick="deleteObj()">Delete selected</button>
+    </div>
+</body>
+</html>
